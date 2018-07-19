@@ -1,5 +1,5 @@
 hash: 2558165b5eee6020f9130ce2f9234a834b3badb165197f87f8fd41bc3581ecc1
-updated: 2018-07-19T02:12:28.833228857Z
+updated: 2018-07-19T10:41:39.678137-07:00
 imports:
 - name: cloud.google.com/go
   version: 767c40d6a2e058483c25fa193e963a22da17236d
@@ -10,18 +10,6 @@ imports:
   - internal/version
   - pubsub
   - pubsub/apiv1
-- name: github.com/davecgh/go-spew
-  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
-  subpackages:
-  - spew
-- name: github.com/eapache/go-resiliency
-  version: ea41b0fad31007accc7f806884dcdf3da98b79ce
-  subpackages:
-  - breaker
-- name: github.com/eapache/go-xerial-snappy
-  version: 040cc1a32f578808623071247fdbd5cc43f37f5f
-- name: github.com/eapache/queue
-  version: 093482f3f8ce946c05bcba64badd2c82369e084d
 - name: github.com/golang/protobuf
   version: 14aad3d5ea4c323bcd7a2137e735da24a76e814c
   subpackages:
@@ -32,25 +20,17 @@ imports:
   - ptypes/duration
   - ptypes/empty
   - ptypes/timestamp
-- name: github.com/golang/snappy
-  version: 2e65f85255dbc3072edf28d6b5b8efc472979f5a
 - name: github.com/googleapis/gax-go
   version: 1ef592c90f479e3ab30c6c2312e20e13881b7ea6
-- name: github.com/pierrec/lz4
-  version: 6b9367c9ff401dbc54fabce3fb8d972e799b702d
-  subpackages:
-  - internal/xxh32
-- name: github.com/rcrowley/go-metrics
-  version: e2704e165165ec55d062f5919b4b29494e9fa790
 - name: github.com/rs/zerolog
   version: b53826c57a6a1d8833443ebeacf1cfb62b229c64
   subpackages:
   - internal/json
   - log
 - name: github.com/Shopify/sarama
-  version: 5cd4d8675b3b11c08e71529e7280c45f9fc3dafe
+  version: 22114655baec1a3d72fc99e95968c9e97b226b22
 - name: go.opencensus.io
-  version: 824f6a62b825d737557c28c68ab9a05310341cd2
+  version: e1f41b1f502f5ce2c47a213fcee0721947995372
   subpackages:
   - exporter/stackdriver/propagation
   - internal

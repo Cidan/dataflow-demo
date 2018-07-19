@@ -1,14 +1,19 @@
 package com.google;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.bigtable.v2.Mutation;
+import com.google.bigtable.v2.Mutation.SetCell;
 import com.google.cloud.bigtable.config.BigtableOptions;
 import com.google.common.collect.Iterables;
 import com.google.protobuf.ByteString;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
@@ -40,7 +45,7 @@ import org.slf4j.LoggerFactory;
 // This is our main execution class for our Pipeline
 public class Demo {
   private static final Logger LOG = LoggerFactory.getLogger(Demo.class);
-  
+  private static final ObjectMapper objectMapper = new ObjectMapper();
   // We define three tags here for our decoded output (below). Each tag is a "split" in the stream,
   // which allows us to make runtime decisions about how to process data.
   static final TupleTag<TableRow> badData = new TupleTag<TableRow>(){};
@@ -51,14 +56,39 @@ public class Demo {
   static class TableRowToMutation extends DoFn<TableRow, KV<ByteString, Iterable<Mutation>>> {
     @ProcessElement
     public void processElement(ProcessContext c) {
+      /*
+      TableRow r = c.element();
+      List<SetCell> ml = new ArrayList<SetCell>();
 
+      for (Map.Entry entry : r.entrySet()) {
+        try {
+			SetCell m = Mutation.SetCell.newBuilder()
+			  .setFamilyName("df-demo")
+			  .setColumnQualifier(
+			    ByteString.copyFromUtf8(
+			      (String)entry.getKey()
+			    )
+			  )
+			  .setValue(
+			    ByteString.copyFromUtf8(
+			      objectMapper.writeValueAsString(entry.getValue())
+			    )
+        ).build();
+        ml.add(m);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+      }
+      c.output(KV.of(
+        ByteString.copyFromUtf8(r.get(""))
+      ))
+      */
     }
   }
   // Here we define a static DoFn -- a function applied on every object in the stream.
   // This DoFn, DecodeMessage, will decode our incoming JSON data and split it into three
   // outputs as defined above.
   static class DecodeMessage extends DoFn<String, KV<String,TableRow>> {
-    ObjectMapper objectMapper = new ObjectMapper();
 
     // This function will create a TableRow (BigQuery row) out of String data
     // for later debugging.
