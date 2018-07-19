@@ -131,11 +131,11 @@ func startWorker(topic *pubsub.Topic) {
 				panic(err)
 			}
 		}
-		// We want to randomly push to either pubsub or to kafka
 		// Write to pub/sub
 		topic.Publish(context.Background(), &pubsub.Message{
 			Data: data,
 		})
+		/*
 		if faker%23 == 0 {
 			time.Sleep(time.Millisecond * 5)
 		}
@@ -160,6 +160,7 @@ func startWorker(topic *pubsub.Topic) {
 		if faker%6 == 0 {
 			time.Sleep(time.Millisecond * 10)
 		}
+		*/
 	}
 }
 

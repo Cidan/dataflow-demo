@@ -15,7 +15,6 @@ resource "google_pubsub_subscription" "pd-demo" {
 resource "google_container_cluster" "df-demo" {
   name               = "df-demo"
   zone               = "us-central1-a"
-  min_master_version = "1.9.2-gke.1"
 
 /*
   master_auth {
