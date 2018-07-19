@@ -8,15 +8,14 @@ resource "google_pubsub_subscription" "pd-demo" {
   topic = "${google_pubsub_topic.pd-demo.name}"
 
   ack_deadline_seconds = 120
-
 }
 
 // Create a k8s cluster
 resource "google_container_cluster" "df-demo" {
-  name               = "df-demo"
-  zone               = "us-central1-a"
+  name = "df-demo"
+  zone = "us-central1-a"
 
-/*
+  /*
   master_auth {
     username = "KDJSH8shdshd"
     password = "asjdhsdhcx7xhcasa11z"
@@ -27,17 +26,16 @@ resource "google_container_cluster" "df-demo" {
     "us-central1-b",
     "us-central1-c",
   ]
-
   // Main pool for the cluster
   node_pool {
-    name = "default"
+    name       = "default"
     node_count = 3
 
     management = {
-      auto_repair = true
+      auto_repair  = true
       auto_upgrade = true
     }
-    
+
     autoscaling = {
       min_node_count = 9
       max_node_count = 24
@@ -54,3 +52,15 @@ resource "google_container_cluster" "df-demo" {
   }
 }
 
+resource "google_bigtable_instance" "df-demo" {
+  name         = "df-demo"
+  cluster_id   = "df-demo"
+  zone         = "us-central1-b"
+  num_nodes    = 3
+  storage_type = "SSD"
+}
+
+resource "google_bigtable_table" "df-demo" {
+  name          = "df-demo"
+  instance_name = "${google_bigtable_instance.df-demo.name}"
+}

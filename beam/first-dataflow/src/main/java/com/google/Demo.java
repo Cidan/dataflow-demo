@@ -2,6 +2,11 @@ package com.google;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.bigtable.v2.Mutation;
+import com.google.cloud.bigtable.config.BigtableOptions;
+import com.google.common.collect.Iterables;
+import com.google.protobuf.ByteString;
+
 import java.util.Arrays;
 import java.util.List;
 import org.apache.beam.sdk.Pipeline;
@@ -9,15 +14,16 @@ import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
+import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.repackaged.com.google.common.collect.Iterables;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableFunction;
+import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -42,6 +48,12 @@ public class Demo {
   static final TupleTag<KV<String,TableRow>> windowData = new TupleTag<KV<String,TableRow>>(){};
 
 
+  static class TableRowToMutation extends DoFn<TableRow, KV<ByteString, Iterable<Mutation>>> {
+    @ProcessElement
+    public void processElement(ProcessContext c) {
+
+    }
+  }
   // Here we define a static DoFn -- a function applied on every object in the stream.
   // This DoFn, DecodeMessage, will decode our incoming JSON data and split it into three
   // outputs as defined above.
@@ -150,12 +162,13 @@ public class Demo {
       .fromArgs(args)
       .withValidation()
       .create();
-
-    Pipeline p = Pipeline.create(options);
+    
     String subscription = "projects/"
     + "jinked-home"
     + "/subscriptions/"
     + "pd-demo";
+
+    Pipeline p = Pipeline.create(options);
 
 		// Read from Pubsub
 		PCollectionTuple decoded = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
@@ -189,6 +202,14 @@ public class Demo {
       .getFailedInserts()
       .apply("Send Dead Letter (Raw)", new DeadLetter("Raw"));
 
+    // Write full, raw output, to BigTable
+    decoded.get(rawData)
+    .apply("Create Mutation", ParDo
+      .of(new TableRowToMutation()))
+    .apply("Raw to BigTable", BigtableIO.write()
+      .withProjectId("jinked-home")
+      .withInstanceId("df-demo")
+      .withTableId("df-demo"));
     // Process our previously decoded KV of (event, TableRow) outputs
     // and bucket them into 1 minute long buckets of data. Think of this
     // as a dam that opens the gates every minute.
