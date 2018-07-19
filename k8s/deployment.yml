@@ -1,0 +1,19 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: generate
+  labels:
+    app: generate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: generate
+  template:
+    metadata:
+      labels:
+        app: generate
+    spec:
+      containers:
+      - name: generate
+        image: gcr.io/jinked-home/github-cidan-dataflow-demo:build-37

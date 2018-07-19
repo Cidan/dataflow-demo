@@ -1,0 +1,6 @@
+vendor/
+/generate
+/beam/first-dataflow/target
+/beam/first-dataflow/test
+/terraform/.terraform
+.vscode
