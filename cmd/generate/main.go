@@ -90,7 +90,7 @@ func main() {
 
 	topic.PublishSettings.DelayThreshold = time.Second * 1
 
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 2; i++ {
 		log.Info().Int("worker", i).Msg("Starting worker")
 		go startWorker(topic)
 	}
@@ -136,30 +136,30 @@ func startWorker(topic *pubsub.Topic) {
 			Data: data,
 		})
 		/*
-		if faker%23 == 0 {
-			time.Sleep(time.Millisecond * 5)
-		}
-		if faker%24 == 0 {
-			time.Sleep(time.Millisecond * 20)
-		}
-		if faker%1 == 0 {
-			time.Sleep(time.Millisecond * 30)
-		}
-		if faker%2 == 0 {
-			time.Sleep(time.Millisecond * 100)
-		}
-		if faker%3 == 0 {
-			time.Sleep(time.Millisecond * 100)
-		}
-		if faker%4 == 0 {
-			time.Sleep(time.Millisecond * 50)
-		}
-		if faker%5 == 0 {
-			time.Sleep(time.Millisecond * 30)
-		}
-		if faker%6 == 0 {
-			time.Sleep(time.Millisecond * 10)
-		}
+			if faker%23 == 0 {
+				time.Sleep(time.Millisecond * 5)
+			}
+			if faker%24 == 0 {
+				time.Sleep(time.Millisecond * 20)
+			}
+			if faker%1 == 0 {
+				time.Sleep(time.Millisecond * 30)
+			}
+			if faker%2 == 0 {
+				time.Sleep(time.Millisecond * 100)
+			}
+			if faker%3 == 0 {
+				time.Sleep(time.Millisecond * 100)
+			}
+			if faker%4 == 0 {
+				time.Sleep(time.Millisecond * 50)
+			}
+			if faker%5 == 0 {
+				time.Sleep(time.Millisecond * 30)
+			}
+			if faker%6 == 0 {
+				time.Sleep(time.Millisecond * 10)
+			}
 		*/
 	}
 }
