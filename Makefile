@@ -31,8 +31,7 @@ dataflow:
 	--runner=DataflowRunner \
 	--numWorkers=10 \
 	--diskSizeGb=30 \
-	--streaming \
-	--subProject=$(PROJECT)"
+	--streaming"
 
 # Start up everything and kick off work
 start:

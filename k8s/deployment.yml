@@ -16,4 +16,4 @@ spec:
     spec:
       containers:
       - name: generate
-        image: gcr.io/jinked-home/github-cidan-dataflow-demo:build-100
+        image: gcr.io/jinked-home/github-cidan-dataflow-demo:build-103
