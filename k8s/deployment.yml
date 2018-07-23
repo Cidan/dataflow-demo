@@ -1,19 +1,72 @@
+#---
+#apiVersion: apps/v1beta1
+#kind: Deployment
+#metadata:
+#  name: generate
+#  labels:
+#    app: generate
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: generate
+#  template:
+#    metadata:
+#      labels:
+#        app: generate
+#    spec:
+#      containers:
+#      - name: generate
+#        image: gcr.io/jinked-home/github-cidan-dataflow-demo:build-103
+---
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: generate
+  name: opentsdb
   labels:
-    app: generate
+    app: opentsdb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: generate
+      app: opentsdb
   template:
     metadata:
       labels:
-        app: generate
+        app: opentsdb
     spec:
       containers:
-      - name: generate
-        image: gcr.io/jinked-home/github-cidan-dataflow-demo:build-103
+      - name: opentsdb
+        image: deeone/opentsdb-bigtable:latest
+        env:
+          - name: TSD_CONF_tsd__http__cachedir
+            value: "/tmp"
+          - name: TSD_CONF_tsd__http__staticroot
+            value: "/tmp"
+          - name: TSD_CONF_tsd__network__port
+            value: "4242"
+          - name: TSD_CONF_google__bigtable__project__id
+            value: "jinked-home"
+          - name: TSD_CONF_google__bigtable__instance__id
+            value: "df-demo"
+          - name: TSD_CONF_google__bigtable__zone__id
+            value: "us-central1-b"
+          - name: TSD_CONF_hbase__client__connection__impl
+            value: "com.google.cloud.bigtable.hbase1_2.BigtableConnection"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opentsdb
+  annotations:
+    cloud.google.com/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 10.1.10.1 # if omitted, an IP is generated
+  loadBalancerSourceRanges: ["10.0.0.0/8"] # defaults to 0.0.0.0/0
+  ports:
+  - name: opentsdb
+    port: 4242
+    protocol: TCP # default; can also specify UDP
+  selector:
+    app: opentsdb # label selector for Pods to target

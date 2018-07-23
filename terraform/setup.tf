@@ -1,4 +1,21 @@
-// Create our Pub/Sub topics
+resource "google_compute_subnetwork" "df-demo" {
+  name          = "df-demo"
+  network       = "default"
+  project       = "jinked-home"
+  region        = "us-central1"
+  ip_cidr_range = "10.1.0.0/20"
+
+  secondary_ip_range = {
+    range_name    = "df-demo-pods"
+    ip_cidr_range = "10.1.16.0/20"
+  }
+
+  secondary_ip_range = {
+    range_name    = "df-demo-services"
+    ip_cidr_range = "10.1.32.0/20"
+  }
+} // Create our Pub/Sub topics
+
 resource "google_pubsub_topic" "pd-demo" {
   name = "pd-demo"
 }
@@ -16,16 +33,23 @@ resource "google_container_cluster" "df-demo" {
   zone = "us-central1-a"
 
   /*
-  master_auth {
-    username = "KDJSH8shdshd"
-    password = "asjdhsdhcx7xhcasa11z"
-  }
-*/
+          master_auth {
+            username = "KDJSH8shdshd"
+            password = "asjdhsdhcx7xhcasa11z"
+          }
+        */
+  subnetwork = "${google_compute_subnetwork.df-demo.name}"
 
   additional_zones = [
     "us-central1-b",
     "us-central1-c",
   ]
+
+  ip_allocation_policy = {
+    services_secondary_range_name = "df-demo-services"
+    cluster_secondary_range_name  = "df-demo-pods"
+  }
+
   // Main pool for the cluster
   node_pool {
     name       = "default"
@@ -62,5 +86,25 @@ resource "google_bigtable_instance" "df-demo" {
 
 resource "google_bigtable_table" "df-demo" {
   name          = "df-demo"
+  instance_name = "${google_bigtable_instance.df-demo.name}"
+}
+
+resource "google_bigtable_table" "df-demo-tsdb" {
+  name          = "tsdb"
+  instance_name = "${google_bigtable_instance.df-demo.name}"
+}
+
+resource "google_bigtable_table" "df-demo-tsdb-uid" {
+  name          = "tsdb-uid"
+  instance_name = "${google_bigtable_instance.df-demo.name}"
+}
+
+resource "google_bigtable_table" "df-demo-tsdb-tree" {
+  name          = "tsdb-tree"
+  instance_name = "${google_bigtable_instance.df-demo.name}"
+}
+
+resource "google_bigtable_table" "df-demo-tsdb-meta" {
+  name          = "tsdb-meta"
   instance_name = "${google_bigtable_instance.df-demo.name}"
 }
