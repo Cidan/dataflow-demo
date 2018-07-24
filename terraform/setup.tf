@@ -29,27 +29,30 @@ resource "google_pubsub_subscription" "pd-demo" {
 
 // Create a k8s cluster
 resource "google_container_cluster" "df-demo" {
-  name = "df-demo"
-  zone = "us-central1-a"
+  name               = "df-demo"
+  zone               = "us-central1-a"
+  enable_legacy_abac = true
 
   /*
-          master_auth {
-            username = "KDJSH8shdshd"
-            password = "asjdhsdhcx7xhcasa11z"
-          }
-        */
+                      master_auth {
+                        username = "KDJSH8shdshd"
+                        password = "asjdhsdhcx7xhcasa11z"
+                      }
+                    */
   subnetwork = "${google_compute_subnetwork.df-demo.name}"
 
-  additional_zones = [
-    "us-central1-b",
-    "us-central1-c",
-  ]
+  #subnetwork = "default"
+
+
+  #additional_zones = [
+  #  "us-central1-b",
+  #  "us-central1-c",
+  #]
 
   ip_allocation_policy = {
     services_secondary_range_name = "df-demo-services"
     cluster_secondary_range_name  = "df-demo-pods"
   }
-
   // Main pool for the cluster
   node_pool {
     name       = "default"

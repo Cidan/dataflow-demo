@@ -31,6 +31,7 @@ dataflow:
 	--runner=DataflowRunner \
 	--numWorkers=10 \
 	--diskSizeGb=30 \
+	--subnetwork="regions/us-central1/subnetworks/default" \
 	--streaming"
 
 creds:
