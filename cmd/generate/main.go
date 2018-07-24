@@ -132,7 +132,8 @@ func startWorker(topic *pubsub.Topic) {
 			}
 		}
 		// Write to pub/sub
-		topic.Publish(context.Background(), &pubsub.Message{
+		ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
+		topic.Publish(ctx, &pubsub.Message{
 			Data: data,
 		})
 		/*
