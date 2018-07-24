@@ -132,10 +132,12 @@ func startWorker(topic *pubsub.Topic) {
 			}
 		}
 		// Write to pub/sub
-		ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
-		topic.Publish(ctx, &pubsub.Message{
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		res := topic.Publish(ctx, &pubsub.Message{
 			Data: data,
 		})
+		res.Get(ctx)
+		cancel()
 		/*
 			if faker%23 == 0 {
 				time.Sleep(time.Millisecond * 5)
