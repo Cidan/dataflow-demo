@@ -1,7 +1,7 @@
 resource "google_compute_subnetwork" "df-demo" {
   name          = "df-demo"
   network       = "default"
-  project       = "jinked-home"
+  project       = "${var.project}"
   region        = "us-central1"
   ip_cidr_range = "10.1.0.0/20"
 
@@ -33,12 +33,6 @@ resource "google_container_cluster" "df-demo" {
   zone               = "us-central1-a"
   enable_legacy_abac = true
 
-  /*
-                      master_auth {
-                        username = "KDJSH8shdshd"
-                        password = "asjdhsdhcx7xhcasa11z"
-                      }
-                    */
   subnetwork = "${google_compute_subnetwork.df-demo.name}"
 
   #subnetwork = "default"

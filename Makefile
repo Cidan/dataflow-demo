@@ -42,7 +42,7 @@ start:
 	cd terraform && terraform init && terraform apply -auto-approve -var "project=$(PROJECT)" -var "bucket=$(BUCKET)"
 	gcloud container clusters get-credentials df-demo --zone us-central1-a --project $(PROJECT)
 	kubectl apply -f k8s/deployment.yml
-	#make dataflow
+	make dataflow
 
 # Stop everything except dataflow
 stop:

@@ -4,3 +4,4 @@ vendor/
 /beam/first-dataflow/test
 /terraform/.terraform
 .vscode
+*tfstate*

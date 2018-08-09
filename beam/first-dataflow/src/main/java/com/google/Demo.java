@@ -1,40 +1,26 @@
 package com.google;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.bigquery.model.TableRow;
-import com.google.bigtable.v2.Mutation;
-import com.google.bigtable.v2.Mutation.SetCell;
-import com.google.cloud.bigtable.config.BigtableOptions;
 import com.google.common.collect.Iterables;
-import com.google.protobuf.ByteString;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
+import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
-import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
-import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableFunction;
-import org.apache.beam.sdk.transforms.DoFn.ProcessElement;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
-import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
@@ -51,40 +37,8 @@ public class Demo {
   static final TupleTag<TableRow> badData = new TupleTag<TableRow>(){};
   static final TupleTag<TableRow> rawData = new TupleTag<TableRow>(){};
   static final TupleTag<KV<String,TableRow>> windowData = new TupleTag<KV<String,TableRow>>(){};
+  static String projectName;
 
-
-  static class TableRowToMutation extends DoFn<TableRow, KV<ByteString, Iterable<Mutation>>> {
-    @ProcessElement
-    public void processElement(ProcessContext c) {
-      /*
-      TableRow r = c.element();
-      List<SetCell> ml = new ArrayList<SetCell>();
-
-      for (Map.Entry entry : r.entrySet()) {
-        try {
-			SetCell m = Mutation.SetCell.newBuilder()
-			  .setFamilyName("df-demo")
-			  .setColumnQualifier(
-			    ByteString.copyFromUtf8(
-			      (String)entry.getKey()
-			    )
-			  )
-			  .setValue(
-			    ByteString.copyFromUtf8(
-			      objectMapper.writeValueAsString(entry.getValue())
-			    )
-        ).build();
-        ml.add(m);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-      }
-      c.output(KV.of(
-        ByteString.copyFromUtf8(r.get(""))
-      ))
-      */
-    }
-  }
   // Here we define a static DoFn -- a function applied on every object in the stream.
   // This DoFn, DecodeMessage, will decode our incoming JSON data and split it into three
   // outputs as defined above.
@@ -177,7 +131,7 @@ public class Demo {
       }))
       // Save our dead letter items into BigQuery
       .apply("Dead Letter (" + label + ")", BigQueryIO.writeTableRows()
-        .to("jinked-home:testing.badData")
+        .to(projectName + ":testing.badData")
         .withSchema(Helpers.generateSchema(Helpers.badSchema))
         .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
         .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
@@ -188,13 +142,14 @@ public class Demo {
   // Our main exeuction point for our pipeline. This is just like main
   // in any other Java program.
   public static void main(String[] args) {
-    PipelineOptions options = PipelineOptionsFactory
+    DataflowPipelineOptions options = PipelineOptionsFactory
       .fromArgs(args)
       .withValidation()
-      .create();
-    
+      .as(DataflowPipelineOptions.class);
+    projectName = options.getProject();
+
     String subscription = "projects/"
-    + "jinked-home"
+    + projectName
     + "/subscriptions/"
     + "pd-demo";
 
@@ -224,7 +179,7 @@ public class Demo {
     // Write full, raw output, to a BigQuery table
     decoded.get(rawData)
     .apply("Raw to BigQuery", BigQueryIO.writeTableRows()
-      .to("jinked-home:testing.rawData")
+      .to(projectName + ":testing.rawData")
       .withSchema(Helpers.generateSchema(Helpers.rawSchema))
       .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
       .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
@@ -232,14 +187,6 @@ public class Demo {
       .getFailedInserts()
       .apply("Send Dead Letter (Raw)", new DeadLetter("Raw"));
 
-    // Write full, raw output, to BigTable
-    decoded.get(rawData)
-    .apply("Create Mutation", ParDo
-      .of(new TableRowToMutation()))
-    .apply("Raw to BigTable", BigtableIO.write()
-      .withProjectId("jinked-home")
-      .withInstanceId("df-demo")
-      .withTableId("df-demo"));
     // Process our previously decoded KV of (event, TableRow) outputs
     // and bucket them into 1 minute long buckets of data. Think of this
     // as a dam that opens the gates every minute.
@@ -267,7 +214,7 @@ public class Demo {
       }))
     // Write our one minute rollups for each event to BigQuery
     .apply("Rollup to BigQuery", BigQueryIO.writeTableRows()
-    .to("jinked-home:testing.rollupData")
+    .to(projectName + ":testing.rollupData")
     .withSchema(Helpers.generateSchema(Helpers.rollupSchema))
     .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
     .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)

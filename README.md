@@ -5,26 +5,21 @@ This is a Dataflow demo, broken into a few parts.
 ## Generate
 Generate is a fake message generator, writte in go. This will insert fake messages into a Pub/Sub stream.
 
-TODO: Insert into Kafka as an option
-
-TODO: very low rate random write junk to illustrate failure
-
 ## Dockerfile
-New generate builds are triggered in GCP when anything in this repo is pushed with a tag of `build-.*`. The resulting tag can then be used in a k8s deployment.
+Dockerfile for building a deployment of the generate application. This must be pushed to a docker registry, such as the GCP hosted one, that GKE can reach.
 
 ## k8s
-k8s deployment file for Generate
+k8s deployment file for Generate, you must change this so the deployment uses your docker image location.
 
 ## Beam
 Dataflow beam workflow, written in Java. This will take string data off of Pub/Sub and transform it into TableRow format.
 
-TODO: Write to BigQuery
-
-TODO: Split tag output based on failure to decode or not
-
-TODO: Detect EventLog type for user create vs event, split tables
-
-TODO: Read from Kafka as an option
-
 ## Terraform
 Creates a GKE cluster and creates topics and subscriptions for Pub/Sub.
+
+## Usage
+After creating the docker image artifact and uploading it, edit `k8s/deployment.yml` so the location of this image is what is deployed.
+
+You must also edit the first two uncommented lines in the `Makefile` in the root folder as documented.
+
+Once the above two things are done, run `make start` in the root checkout folder and the entire stack will deploy to the GCP project in your `Makefile`
