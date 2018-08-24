@@ -16,6 +16,20 @@ build:
 generate:
 	../../../../bin/generate
 
+dataflow-flink:
+#	cd beam/first-dataflow && \
+	mvn package -Pflink-runner
+	cd beam/first-dataflow && \
+	mvn compile exec:java \
+    -Dexec.mainClass=com.google.Demo \
+		-Pflink-runner \
+    -Dexec.args="--project=$(PROJECT) \
+	--jobName=EventLog \
+	--stagingLocation=gs://$(BUCKET)/pd-demo \
+	--runner=FlinkRunner \
+	--flinkMaster="[local]" \
+	--streaming"
+
 dataflow-local:
 	cd beam/first-dataflow && \
 	mvn compile exec:java \
