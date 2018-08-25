@@ -19,9 +19,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.example</groupId>
-  <artifactId>first-dataflow</artifactId>
-  <version>0.1</version>
+  <groupId>com.google</groupId>
+  <artifactId>dataflow-streams</artifactId>
+  <version>1.0</version>
 
   <packaging>jar</packaging>
 
@@ -147,31 +147,37 @@
   </build>
 
   <dependencies>
-    <!-- Adds a dependency on a specific version of the Dataflow SDK. -->
-    <dependency>
-      <groupId>com.google.cloud.dataflow</groupId>
-      <artifactId>google-cloud-dataflow-java-sdk-all</artifactId>
-      <version>2.5.0</version>
-    </dependency>
-<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-runners-flink -->
+
+<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-sdks-java-core -->
 <dependency>
     <groupId>org.apache.beam</groupId>
-    <artifactId>beam-runners-flink_2.11</artifactId>
-    <version>2.5.0</version>
-    <scope>runtime</scope>
+    <artifactId>beam-sdks-java-core</artifactId>
+    <version>2.6.0</version>
 </dependency>
 
-
+<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-runners-direct-java -->
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-runners-direct-java</artifactId>
+    <version>2.6.0</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-runners-google-cloud-dataflow-java -->
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
+    <version>2.6.0</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-sdks-java-io-kafka</artifactId>
+    <version>2.6.0</version>
+</dependency>
 <dependency>
     <groupId>com.fasterxml.jackson.core</groupId>
     <artifactId>jackson-databind</artifactId>
     <version>2.7.5</version>
 </dependency>
-<dependency>
-    <groupId>org.apache.beam</groupId>
-    <artifactId>beam-sdks-java-io-kafka</artifactId>
-    <version>2.5.0</version>
-</dependency>
+
     <!-- Dependencies below this line are specific dependencies needed by the examples code. -->
     <dependency>
       <groupId>com.google.api-client</groupId>

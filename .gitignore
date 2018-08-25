@@ -1,7 +1,10 @@
 vendor/
 /generate
-/beam/first-dataflow/target
-/beam/first-dataflow/test
+/beam/**/target
+/beam/**/test
+/beam/**/.project
+/beam/**/.*path
+/beam/**/*.prefs
 /terraform/.terraform
 .vscode
 *tfstate*

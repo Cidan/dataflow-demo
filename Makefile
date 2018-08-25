@@ -17,9 +17,9 @@ generate:
 	../../../../bin/generate
 
 dataflow-flink:
-	cd beam/first-dataflow && \
+	cd beam/ && \
 	mvn package -Pflink-runner
-	cd beam/first-dataflow && \
+	cd beam/ && \
 	mvn compile exec:java \
     -Dexec.mainClass=com.google.Demo \
 		-Pflink-runner \
@@ -31,12 +31,14 @@ dataflow-flink:
 	--streaming"
 
 dataflow-local:
-	cd beam/first-dataflow && \
+	cd beam/ && \
 	mvn compile exec:java \
-    -Dexec.mainClass=com.google.Demo
+    -Dexec.mainClass=com.google.Demo \
+		-Dexec.args="--project=$(PROJECT) \
+	--runner=DirectRunner"
 
 dataflow:
-	cd beam/first-dataflow && \
+	cd beam/dataflow-streams && \
 	mvn compile exec:java \
     -Dexec.mainClass=com.google.Demo \
     -Dexec.args="--project=$(PROJECT) \
