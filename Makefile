@@ -17,7 +17,7 @@ generate:
 	../../../../bin/generate
 
 dataflow-flink:
-#	cd beam/first-dataflow && \
+	cd beam/first-dataflow && \
 	mvn package -Pflink-runner
 	cd beam/first-dataflow && \
 	mvn compile exec:java \
