@@ -1,0 +1,6 @@
+package: github.com/Cidan/dataflow-demo/go
+import:
+- package: github.com/apache/beam
+  version: ^2.7.0-RC3
+  subpackages:
+  - sdks/go/...
