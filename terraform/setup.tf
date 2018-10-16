@@ -75,33 +75,15 @@ resource "google_container_cluster" "df-demo" {
 
 resource "google_bigtable_instance" "df-demo" {
   name         = "df-demo"
-  cluster_id   = "df-demo"
-  zone         = "us-central1-b"
-  num_nodes    = 3
-  storage_type = "SSD"
+  cluster {
+    cluster_id   = "df-demo-main"
+    zone         = "us-central1-b"
+    num_nodes    = 3
+    storage_type = "SSD"
+  }
 }
 
 resource "google_bigtable_table" "df-demo" {
   name          = "df-demo"
-  instance_name = "${google_bigtable_instance.df-demo.name}"
-}
-
-resource "google_bigtable_table" "df-demo-tsdb" {
-  name          = "tsdb"
-  instance_name = "${google_bigtable_instance.df-demo.name}"
-}
-
-resource "google_bigtable_table" "df-demo-tsdb-uid" {
-  name          = "tsdb-uid"
-  instance_name = "${google_bigtable_instance.df-demo.name}"
-}
-
-resource "google_bigtable_table" "df-demo-tsdb-tree" {
-  name          = "tsdb-tree"
-  instance_name = "${google_bigtable_instance.df-demo.name}"
-}
-
-resource "google_bigtable_table" "df-demo-tsdb-meta" {
-  name          = "tsdb-meta"
   instance_name = "${google_bigtable_instance.df-demo.name}"
 }

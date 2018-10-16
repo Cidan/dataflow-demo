@@ -45,6 +45,7 @@ dataflow:
 	--runner=DataflowRunner \
 	--numWorkers=10 \
 	--diskSizeGb=30 \
+	--experiments=shuffle_mode=service \
 	--subnetwork="regions/us-central1/subnetworks/default" \
 	--streaming"
 
@@ -56,6 +57,7 @@ start:
 	cd terraform && terraform init && terraform apply -auto-approve -var "project=$(PROJECT)" -var "bucket=$(BUCKET)"
 	gcloud container clusters get-credentials df-demo --zone us-central1-a --project $(PROJECT)
 	kubectl apply -f k8s/deployment.yml
+	cbt -instance df-demo createfamily df-demo events
 	make dataflow
 
 # Stop everything except dataflow

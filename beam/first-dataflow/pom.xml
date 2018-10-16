@@ -147,20 +147,32 @@
   </build>
 
   <dependencies>
-    <!-- Adds a dependency on a specific version of the Dataflow SDK. -->
+  <!-- https://mvnrepository.com/artifact/org.apache.beam/beam-sdks-java-core -->
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-sdks-java-core</artifactId>
+    <version>2.7.0</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-runners-google-cloud-dataflow-java -->
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
+    <version>2.7.0</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-sdks-java-io-google-cloud-platform -->
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-sdks-java-io-google-cloud-platform</artifactId>
+    <version>2.7.0</version>
+</dependency>
+
+    <!-- Adds a dependency on a specific version of the Dataflow SDK.
     <dependency>
       <groupId>com.google.cloud.dataflow</groupId>
       <artifactId>google-cloud-dataflow-java-sdk-all</artifactId>
-      <version>2.5.0</version>
+      <version>2.6.0</version>
     </dependency>
-<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-runners-flink -->
-<dependency>
-    <groupId>org.apache.beam</groupId>
-    <artifactId>beam-runners-flink_2.11</artifactId>
-    <version>2.5.0</version>
-    <scope>runtime</scope>
-</dependency>
-
+-->
 
 <dependency>
     <groupId>com.fasterxml.jackson.core</groupId>

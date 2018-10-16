@@ -1,8 +1,15 @@
 package com.google;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.bigquery.model.TableRow;
+import com.google.bigtable.v2.Mutation;
+import com.google.bigtable.v2.Mutation.SetCell;
 import com.google.common.collect.Iterables;
+import com.google.protobuf.ByteString;
 
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -10,6 +17,7 @@ import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
+import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -38,6 +46,45 @@ public class Demo {
   static final TupleTag<TableRow> rawData = new TupleTag<TableRow>(){};
   static final TupleTag<KV<String,TableRow>> windowData = new TupleTag<KV<String,TableRow>>(){};
   static String projectName;
+
+  static class CreateMutation extends DoFn<TableRow, KV<ByteString,Iterable<Mutation>>> {
+     // Our main decoder function.
+     @ProcessElement
+     public void processElement(ProcessContext c) {
+      
+      TableRow output = c.element();
+      // Create our BigTable mutation by iterating over keys and setting cells.
+      // This is a shallow operation.
+
+      List<Mutation> mutationList = new ArrayList<>();
+      Iterator<TableRow.Entry<String,Object>> it = output.entrySet().iterator();
+      String uuid = "";
+
+      while (it.hasNext()) {
+        TableRow.Entry<String, Object> pair = (TableRow.Entry<String, Object>)it.next();
+        if (pair.getValue() == null) {
+          continue;
+        }
+        if (pair.getKey().equalsIgnoreCase("uuid")) {
+          uuid = (String)pair.getValue();
+        }
+
+        // Java, you so silly sometimes.
+        Mutation mutation =
+        Mutation.newBuilder()
+            .setSetCell(SetCell.newBuilder()
+            .setFamilyName("events")
+            .setColumnQualifier(ByteString.copyFromUtf8(pair.getKey()))
+            .setValue(ByteString.copyFromUtf8(pair.getValue().toString()))
+            )
+          .build();
+        mutationList.add(mutation);
+      }
+
+      Iterable<Mutation> ol = mutationList;
+      c.output(KV.of(ByteString.copyFromUtf8(uuid), ol));
+     }
+  }
 
   // Here we define a static DoFn -- a function applied on every object in the stream.
   // This DoFn, DecodeMessage, will decode our incoming JSON data and split it into three
@@ -186,6 +233,14 @@ public class Demo {
       .withFailedInsertRetryPolicy(InsertRetryPolicy.retryTransientErrors()))
       .getFailedInserts()
       .apply("Send Dead Letter (Raw)", new DeadLetter("Raw"));
+
+    // Write full, raw output, to a BigTable table.
+    decoded.get(rawData).apply("Convert to Mutation", ParDo
+      .of(new CreateMutation()))
+    .apply("Raw to BigTable", BigtableIO.write()
+      .withProjectId(projectName)
+      .withInstanceId("df-demo")
+      .withTableId("df-demo"));
 
     // Process our previously decoded KV of (event, TableRow) outputs
     // and bucket them into 1 minute long buckets of data. Think of this

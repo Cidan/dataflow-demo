@@ -1,5 +1,5 @@
 hash: 2558165b5eee6020f9130ce2f9234a834b3badb165197f87f8fd41bc3581ecc1
-updated: 2018-07-19T10:41:39.678137-07:00
+updated: 2018-10-16T09:36:37.522922-07:00
 imports:
 - name: cloud.google.com/go
   version: 767c40d6a2e058483c25fa193e963a22da17236d
@@ -11,7 +11,7 @@ imports:
   - pubsub
   - pubsub/apiv1
 - name: github.com/golang/protobuf
-  version: 14aad3d5ea4c323bcd7a2137e735da24a76e814c
+  version: ddf22928ea3c56eb4292a0adbbf5001b1e8e7d0d
   subpackages:
   - proto
   - protoc-gen-go/descriptor
@@ -28,11 +28,11 @@ imports:
   - internal/json
   - log
 - name: github.com/Shopify/sarama
-  version: 22114655baec1a3d72fc99e95968c9e97b226b22
+  version: f21e149e5948e9c9b9034f1a19f430d62e00c4d3
 - name: go.opencensus.io
-  version: e1f41b1f502f5ce2c47a213fcee0721947995372
+  version: 1eb9a13c7dd02141e065a665f6bf5c99a090a16a
   subpackages:
-  - exporter/stackdriver/propagation
+  - exemplar
   - internal
   - internal/tagencoding
   - plugin/ocgrpc
@@ -45,8 +45,9 @@ imports:
   - trace
   - trace/internal
   - trace/propagation
+  - trace/tracestate
 - name: golang.org/x/net
-  version: 81d44fd177a98d09fe3bc40a5a78d495d3f042ea
+  version: 49bb7cea24b1df9410e1712aa6433dae904ff66a
   subpackages:
   - context
   - context/ctxhttp
@@ -57,7 +58,7 @@ imports:
   - internal/timeseries
   - trace
 - name: golang.org/x/oauth2
-  version: ef147856a6ddbb60760db74283d2424e98c87bff
+  version: c57b0facaced709681d9f90397429b9430a74754
   subpackages:
   - google
   - internal
@@ -69,18 +70,18 @@ imports:
   - errgroup
   - semaphore
 - name: golang.org/x/sys
-  version: ac767d655b305d4e9612f5f6e33120b9176c4ad4
+  version: fa43e7bc11baaae89f3f902b2b4d832b68234844
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 0605a8320aceb4207a5fb3521281e17ec2075476
+  version: 4d1c5fb19474adfe9562c9847ba425e7da817e81
   subpackages:
   - secure/bidirule
   - transform
   - unicode/bidi
   - unicode/norm
 - name: google.golang.org/api
-  version: efcb5f25ac56eae06c8b5672456c0b7767522685
+  version: c51f30376ab7ec4f22b65de846a41593c8b70f07
   subpackages:
   - googleapi/transport
   - internal
@@ -90,8 +91,9 @@ imports:
   - transport
   - transport/grpc
   - transport/http
+  - transport/http/internal/propagation
 - name: google.golang.org/appengine
-  version: b1f26356af11148e710935ed1ac8a7f5702c7612
+  version: ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06
   subpackages:
   - internal
   - internal/app_identity
@@ -105,7 +107,7 @@ imports:
   - socket
   - urlfetch
 - name: google.golang.org/genproto
-  version: fedd2861243fd1a8152376292b921b394c7bef7e
+  version: af9cb2a35e7f169ec875002c1829c9b315cddc04
   subpackages:
   - googleapis/api/annotations
   - googleapis/iam/v1
@@ -113,7 +115,7 @@ imports:
   - googleapis/rpc/status
   - protobuf/field_mask
 - name: google.golang.org/grpc
-  version: 5562178a5206f11cb3ad0264d31583fec81472b4
+  version: 557b6b5f680fda222ca5cce8b0de8f2f201c32ea
   subpackages:
   - balancer
   - balancer/base
