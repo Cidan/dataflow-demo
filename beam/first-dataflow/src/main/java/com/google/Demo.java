@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.bigtable.v2.Mutation;
 import com.google.bigtable.v2.Mutation.SetCell;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.protobuf.ByteString;
 
@@ -15,23 +16,29 @@ import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
+import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
 import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.Flatten;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableFunction;
+import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,9 +209,32 @@ public class Demo {
 
     Pipeline p = Pipeline.create(options);
 
+    // Read from Kafka
+    PCollection<String> kafkaStream = p.apply("Read from Kafka",
+      KafkaIO.<Long,String>read()
+        .withBootstrapServers("kafka-w-0:9092,kafka-w-1:9092")
+        .withTopic("df-demo")
+        .withKeyDeserializer(LongDeserializer.class)
+        .withValueDeserializer(StringDeserializer.class)
+        .updateConsumerProperties(ImmutableMap.<String,Object>of("group.id", "df-demo"))
+        .withReadCommitted()
+        .commitOffsetsInFinalize()
+        .withoutMetadata()
+    ).apply("Strip Keys", Values.<String>create());
+
+    // Read from Pub/Sub
+    PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
+    .fromSubscription(subscription));
+
+    // Flatten the streams
+    PCollection<String> merged = PCollectionList
+      .of(kafkaStream)
+      .and(pubsubStream)
+    .apply("Flatten Streams",
+      Flatten.<String>pCollections());
+    
 		// Read from Pubsub
-		PCollectionTuple decoded = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
-        .fromSubscription(subscription))
+		PCollectionTuple decoded = merged
     
     // Decode the messages into TableRow's (a type of Map), split by tag
     // based on how our decode function emitted the TableRow

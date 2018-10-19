@@ -128,7 +128,7 @@ func startWorker(topic *pubsub.Topic) {
 			}
 			data, err = json.Marshal(ev)
 			if err != nil {
-				panic(err)
+				continue
 			}
 		}
 		// Write to pub/sub
@@ -138,32 +138,6 @@ func startWorker(topic *pubsub.Topic) {
 		})
 		res.Get(ctx)
 		cancel()
-		/*
-			if faker%23 == 0 {
-				time.Sleep(time.Millisecond * 5)
-			}
-			if faker%24 == 0 {
-				time.Sleep(time.Millisecond * 20)
-			}
-			if faker%1 == 0 {
-				time.Sleep(time.Millisecond * 30)
-			}
-			if faker%2 == 0 {
-				time.Sleep(time.Millisecond * 100)
-			}
-			if faker%3 == 0 {
-				time.Sleep(time.Millisecond * 100)
-			}
-			if faker%4 == 0 {
-				time.Sleep(time.Millisecond * 50)
-			}
-			if faker%5 == 0 {
-				time.Sleep(time.Millisecond * 30)
-			}
-			if faker%6 == 0 {
-				time.Sleep(time.Millisecond * 10)
-			}
-		*/
 	}
 }
 

@@ -5,3 +5,4 @@ vendor/
 /terraform/.terraform
 .vscode
 *tfstate*
+*.tar.gz

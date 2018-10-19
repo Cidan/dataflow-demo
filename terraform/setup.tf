@@ -78,7 +78,7 @@ resource "google_bigtable_instance" "df-demo" {
   cluster {
     cluster_id   = "df-demo-main"
     zone         = "us-central1-b"
-    num_nodes    = 3
+    num_nodes    = 10
     storage_type = "SSD"
   }
 }

@@ -36,8 +36,11 @@ dataflow-local:
     -Dexec.mainClass=com.google.Demo
 
 dataflow:
-	cd beam/first-dataflow && \
-	mvn compile exec:java \
+	cd beam/ && \
+	tar -cf df.tar * && gzip -9 df.tar && \
+	gsutil cp df.tar.gz gs://$(BUCKET)/df.tar.gz && \
+	gcloud compute ssh kafka-m-0 --command="gsutil cp gs://$(BUCKET)/df.tar.gz df.tar.gz && tar -xvzf df.tar.gz && bash run.sh $(PROJECT) $(BUCKET)"
+#	mvn compile exec:java \
     -Dexec.mainClass=com.google.Demo \
     -Dexec.args="--project=$(PROJECT) \
 	--jobName=EventLog \
