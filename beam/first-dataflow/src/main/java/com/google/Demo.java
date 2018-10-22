@@ -54,6 +54,7 @@ public class Demo {
   static final TupleTag<KV<String,TableRow>> windowData = new TupleTag<KV<String,TableRow>>(){};
   static String projectName;
 
+  // A DoFn that creates a BigTable mutation out of our data stream.
   static class CreateMutation extends DoFn<TableRow, KV<ByteString,Iterable<Mutation>>> {
      // Our main decoder function.
      @ProcessElement
