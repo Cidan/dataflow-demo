@@ -5,7 +5,7 @@ mvn compile exec:java \
 --jobName=EventLog \
 --stagingLocation=gs://$2/pd-demo \
 --runner=DataflowRunner \
---numWorkers=10 \
+--numWorkers=20 \
 --diskSizeGb=30 \
 --experiments=shuffle_mode=service \
 --subnetwork=\"regions/us-central1/subnetworks/default\" \
