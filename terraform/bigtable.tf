@@ -16,3 +16,8 @@ resource "google_bigtable_instance" "df-demo" {
     storage_type = "HDD"
   }
 }
+
+resource "google_bigtable_table" "df-demo" {
+  name          = "df-demo"
+  instance_name = "${google_bigtable_instance.df-demo.name}"
+}

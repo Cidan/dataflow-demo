@@ -124,20 +124,3 @@ resource "google_container_cluster" "df-demo-central" {
     }
   }
 }
-
-/*
-resource "google_bigtable_instance" "df-demo" {
-  name         = "df-demo"
-  cluster {
-    cluster_id   = "df-demo-main"
-    zone         = "us-central1-b"
-    num_nodes    = 10
-    storage_type = "SSD"
-  }
-}
-
-resource "google_bigtable_table" "df-demo" {
-  name          = "df-demo"
-  instance_name = "${google_bigtable_instance.df-demo.name}"
-}
-*/
