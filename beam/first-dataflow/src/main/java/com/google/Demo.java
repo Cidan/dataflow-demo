@@ -210,32 +210,12 @@ public class Demo {
 
     Pipeline p = Pipeline.create(options);
 
-    // Read from Kafka
-    PCollection<String> kafkaStream = p.apply("Read from Kafka",
-      KafkaIO.<Long,String>read()
-        .withBootstrapServers("kafka-w-0:9092,kafka-w-1:9092")
-        .withTopic("df-demo")
-        .withKeyDeserializer(LongDeserializer.class)
-        .withValueDeserializer(StringDeserializer.class)
-        .updateConsumerProperties(ImmutableMap.<String,Object>of("group.id", "df-demo"))
-        .withReadCommitted()
-        .commitOffsetsInFinalize()
-        .withoutMetadata()
-    ).apply("Strip Keys", Values.<String>create());
-
     // Read from Pub/Sub
     PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
     .fromSubscription(subscription));
 
-    // Flatten the streams
-    PCollection<String> merged = PCollectionList
-      .of(kafkaStream)
-      .and(pubsubStream)
-    .apply("Flatten Streams",
-      Flatten.<String>pCollections());
-    
 		// Read from Pubsub
-		PCollectionTuple decoded = merged
+		PCollectionTuple decoded = pubsubStream
     
     // Decode the messages into TableRow's (a type of Map), split by tag
     // based on how our decode function emitted the TableRow

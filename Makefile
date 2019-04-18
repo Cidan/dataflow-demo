@@ -36,11 +36,7 @@ dataflow-local:
     -Dexec.mainClass=com.google.Demo
 
 dataflow:
-	cd beam/ && \
-	tar -cf df.tar * && gzip -9 df.tar && \
-	gsutil cp df.tar.gz gs://$(BUCKET)/df.tar.gz && \
-	gcloud compute ssh kafka-m-0 --command="gsutil cp gs://$(BUCKET)/df.tar.gz df.tar.gz && tar -xvzf df.tar.gz && bash run.sh $(PROJECT) $(BUCKET)"
-#	mvn compile exec:java \
+	mvn compile exec:java \
     -Dexec.mainClass=com.google.Demo \
     -Dexec.args="--project=$(PROJECT) \
 	--jobName=EventLog \
@@ -57,11 +53,18 @@ creds:
 
 # Start up everything and kick off work
 start:
-	cd terraform && terraform init && terraform apply -auto-approve -var "project=$(PROJECT)" -var "bucket=$(BUCKET)"
+	cd terraform && terraform init && terraform apply -auto-approve -var "project=$(PROJECT)"
 	gcloud container clusters get-credentials df-demo --zone us-central1-a --project $(PROJECT)
 	kubectl apply -f k8s/deployment.yml
-	cbt -instance df-demo createfamily df-demo events
-	make dataflow
+	gcloud container clusters get-credentials df-demo --zone us-west1-a --project $(PROJECT)
+	kubectl apply -f k8s/deployment.yml
+	gcloud container clusters get-credentials df-demo --zone us-east1-b --project $(PROJECT)
+	kubectl apply -f k8s/deployment.yml
+	gcloud container clusters get-credentials df-demo --zone europe-west1-b --project $(PROJECT)
+	kubectl apply -f k8s/deployment.yml
+
+	#cbt -instance df-demo createfamily df-demo events
+	#make dataflow
 
 # Stop everything except dataflow
 stop:
