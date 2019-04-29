@@ -15,6 +15,7 @@ import com.google.protobuf.ByteString;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.FileIO;
+import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
 import org.apache.beam.sdk.io.parquet.ParquetIO;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
@@ -231,17 +232,24 @@ public class Demo {
             }));
 
     // Get our files from the batched events
-    uris.apply(FileIO.matchAll()
+    PCollection<String> batchedData = uris.apply(FileIO.matchAll()
     .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
     .apply(FileIO.readMatches())
-    .apply(ParquetIO.readFiles()); // TODO Schema
+    .apply(TextIO.readFiles());
 
     // Read live data from Pub/Sub
     PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
     .fromSubscription(subscription));
+    
+    // Merge our two streams together
+    PCollection<String> merged = PCollectionList
+      .of(batchedData)
+      .and(pubsubStream)
+    .apply("Flatten Streams",
+      Flatten.<String>pCollections());
 
 		// Read from Pubsub
-		PCollectionTuple decoded = pubsubStream
+		PCollectionTuple decoded = merged
     
     // Decode the messages into TableRow's (a type of Map), split by tag
     // based on how our decode function emitted the TableRow
