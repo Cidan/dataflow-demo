@@ -175,6 +175,13 @@
     <artifactId>beam-sdks-java-io-kafka</artifactId>
     <version>${beam.version}</version>
 </dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.beam/beam-sdks-java-io-parquet -->
+<dependency>
+    <groupId>org.apache.beam</groupId>
+    <artifactId>beam-sdks-java-io-parquet</artifactId>
+    <version>${beam.version}</version>
+</dependency>
+
 <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
 <dependency>
     <groupId>org.apache.kafka</groupId>

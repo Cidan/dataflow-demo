@@ -16,6 +16,7 @@ import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.FileIO;
 import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
+import org.apache.beam.sdk.io.parquet.ParquetIO;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
@@ -233,7 +234,7 @@ public class Demo {
     uris.apply(FileIO.matchAll()
     .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
     .apply(FileIO.readMatches())
-    .apply(ParquetIO.readFiles());
+    .apply(ParquetIO.readFiles()); // TODO Schema
 
     // Read live data from Pub/Sub
     PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
