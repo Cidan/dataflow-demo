@@ -248,7 +248,7 @@ public class Demo {
     .apply("Flatten Streams",
       Flatten.<String>pCollections());
 
-		// Read from Pubsub
+		// Decoded our incoming data
 		PCollectionTuple decoded = merged
     
     // Decode the messages into TableRow's (a type of Map), split by tag
