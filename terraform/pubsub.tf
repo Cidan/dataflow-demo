@@ -9,3 +9,7 @@ resource "google_pubsub_subscription" "pd-demo" {
 
   ack_deadline_seconds = 120
 }
+
+resource "google_pubsub_topic" "iot-batch" {
+  name = "iot-batch"
+}

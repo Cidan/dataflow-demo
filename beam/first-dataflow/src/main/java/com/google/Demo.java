@@ -14,8 +14,11 @@ import com.google.protobuf.ByteString;
 
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.io.FileIO;
+import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.kafka.KafkaIO;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
@@ -24,19 +27,23 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Flatten;
+import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableFunction;
+import org.apache.beam.sdk.transforms.SimpleFunction;
 import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.util.gcsfs.GcsPath;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
+import org.apache.beam.sdk.values.TypeDescriptors;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.joda.time.Duration;
@@ -210,7 +217,25 @@ public class Demo {
 
     Pipeline p = Pipeline.create(options);
 
-    // Read from Pub/Sub
+    // Collect batched data events from Pub/Sub
+    PCollection<String> uris = p.apply(PubsubIO.readMessagesWithAttributes()
+    .fromSubscription("fill in")) // TODO: subscription here
+    .apply(MapElements
+            .into(TypeDescriptors.strings())
+            .via((PubsubMessage msg) -> {
+              return GcsPath.fromComponents(
+                msg.getAttribute("bucketId"),
+                msg.getAttribute("objectId")
+              ).toString();
+            }));
+
+    // Get our files from the batched events
+    uris.apply(FileIO.matchAll()
+    .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
+    .apply(FileIO.readMatches())
+    .apply(ParquetIO.readFiles());
+
+    // Read live data from Pub/Sub
     PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
     .fromSubscription(subscription));
 
