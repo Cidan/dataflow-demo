@@ -13,3 +13,10 @@ resource "google_pubsub_subscription" "pd-demo" {
 resource "google_pubsub_topic" "iot-batch" {
   name = "iot-batch"
 }
+
+resource "google_pubsub_subscription" "iot-batch" {
+  name  = "iot-batch"
+  topic = "${google_pubsub_topic.iot-batch.name}"
+
+  ack_deadline_seconds = 120
+}
