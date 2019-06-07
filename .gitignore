@@ -6,3 +6,5 @@ vendor/
 .vscode
 *tfstate*
 *.tar.gz
+beam/first-dataflow/.settings/org.eclipse.jdt.core.prefs
+beam/first-dataflow/bin/.project

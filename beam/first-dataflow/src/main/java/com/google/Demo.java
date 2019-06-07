@@ -8,15 +8,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.bigtable.v2.Mutation;
 import com.google.bigtable.v2.Mutation.SetCell;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.protobuf.ByteString;
 
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.io.FileIO;
+import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
-import org.apache.beam.sdk.io.kafka.KafkaIO;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
 import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
@@ -24,21 +26,21 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Flatten;
+import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.SerializableFunction;
-import org.apache.beam.sdk.transforms.Values;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.util.gcsfs.GcsPath;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TupleTagList;
-import org.apache.kafka.common.serialization.LongDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.beam.sdk.values.TypeDescriptors;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,33 +210,42 @@ public class Demo {
     + "/subscriptions/"
     + "pd-demo";
 
+    String batchSubscription = "projects/"
+    + projectName
+    + "/subscriptions/"
+    + "iot-batch";
     Pipeline p = Pipeline.create(options);
 
-    // Read from Kafka
-    PCollection<String> kafkaStream = p.apply("Read from Kafka",
-      KafkaIO.<Long,String>read()
-        .withBootstrapServers("kafka-w-0:9092,kafka-w-1:9092")
-        .withTopic("df-demo")
-        .withKeyDeserializer(LongDeserializer.class)
-        .withValueDeserializer(StringDeserializer.class)
-        .updateConsumerProperties(ImmutableMap.<String,Object>of("group.id", "df-demo"))
-        .withReadCommitted()
-        .commitOffsetsInFinalize()
-        .withoutMetadata()
-    ).apply("Strip Keys", Values.<String>create());
+    // Collect batched data events from Pub/Sub
+    PCollection<String> uris = p.apply(PubsubIO.readMessagesWithAttributes()
+    .fromSubscription(batchSubscription))
+    .apply(MapElements
+            .into(TypeDescriptors.strings())
+            .via((PubsubMessage msg) -> {
+              return GcsPath.fromComponents(
+                msg.getAttribute("bucketId"),
+                msg.getAttribute("objectId")
+              ).toString();
+            }));
 
-    // Read from Pub/Sub
+    // Get our files from the batched events
+    PCollection<String> batchedData = uris.apply(FileIO.matchAll()
+    .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
+    .apply(FileIO.readMatches())
+    .apply(TextIO.readFiles());
+
+    // Read live data from Pub/Sub
     PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
     .fromSubscription(subscription));
-
-    // Flatten the streams
+    
+    // Merge our two streams together
     PCollection<String> merged = PCollectionList
-      .of(kafkaStream)
+      .of(batchedData)
       .and(pubsubStream)
     .apply("Flatten Streams",
       Flatten.<String>pCollections());
-    
-		// Read from Pubsub
+
+		// Decoded our incoming data
 		PCollectionTuple decoded = merged
     
     // Decode the messages into TableRow's (a type of Map), split by tag
