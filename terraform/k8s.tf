@@ -1,4 +1,3 @@
-/*
 resource "google_container_cluster" "df-demo-eu-west" {
   name               = "df-demo"
   zone               = "europe-west1-b"
@@ -124,4 +123,3 @@ resource "google_container_cluster" "df-demo-central" {
     }
   }
 }
-*/
