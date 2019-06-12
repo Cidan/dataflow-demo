@@ -1,10 +1,10 @@
 vendor/
 /generate
-/beam/first-dataflow/target
-/beam/first-dataflow/test
+/beam/dataflow-demo/target
+/beam/dataflow-demo/test
 /terraform/.terraform
 .vscode
 *tfstate*
 *.tar.gz
-beam/first-dataflow/.settings/org.eclipse.jdt.core.prefs
-beam/first-dataflow/bin/.project
+beam/dataflow-demo/.settings/org.eclipse.jdt.core.prefs
+beam/dataflow-demo/bin/.project

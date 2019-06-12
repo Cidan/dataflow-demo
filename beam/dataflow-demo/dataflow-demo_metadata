@@ -1,0 +1,5 @@
+{
+  "description": "A scalable dataflow demo demonstrating streaming analytics at scale.",
+  "name": "Dataflow Demo",
+  "parameters": []
+}
