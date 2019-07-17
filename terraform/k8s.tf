@@ -1,10 +1,11 @@
 // Create a k8s cluster
 resource "google_container_cluster" "df-demo" {
   name               = "df-demo"
-  zone               = "us-central1-a"
+  location               = "us-central1-a"
   enable_legacy_abac = true
 
   subnetwork = "${google_compute_subnetwork.df-demo.name}"
+  
   // Main pool for the cluster
   node_pool {
     name       = "default"
