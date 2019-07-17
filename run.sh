@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 PROJECT=$1
 BUCKET=$2
 
@@ -24,6 +25,10 @@ function create-terraform {
 	cd ..
 }
 
+function create-bigtable-cf {
+	cbt -instance df-demo createfamily df-demo events
+}
+
 function start-generator {
 	gcloud container clusters get-credentials df-demo --zone us-central1-a --project $PROJECT
 	sed "s/{{PROJECT}}/$PROJECT/" k8s/deployment.yml | kubectl apply -f -
@@ -31,4 +36,5 @@ function start-generator {
 
 create-container
 create-terraform
+create-bigtable-cf
 start-generator
