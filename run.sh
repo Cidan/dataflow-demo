@@ -26,8 +26,9 @@ function create-terraform {
 
 function start-generator {
 	gcloud container clusters get-credentials df-demo --zone us-central1-a --project $PROJECT
-	kubectl apply -f k8s/deployment.yml
+	sed "s/{{PROJECT}}/$PROJECT/" k8s/deployment.yml | kubectl apply -f -
 }
 
 #create-container
-create-terraform
+#create-terraform
+start-generator

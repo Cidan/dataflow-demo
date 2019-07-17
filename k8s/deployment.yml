@@ -17,4 +17,4 @@ spec:
     spec:
       containers:
       - name: generate
-        image: gcr.io/${PROJECT}/dataflow-demo-generate:latest
+        image: gcr.io/{{PROJECT}}/dataflow-demo-generate:latest
