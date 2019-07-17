@@ -1,10 +1,13 @@
 vendor/
 /generate
-/beam/first-dataflow/target
-/beam/first-dataflow/test
+/beam/streaming-insert/target
+/beam/streaming-insert/test
+/beam/streaming-insert/.settings/**
+/beam/streaming-insert/bin/.project
+/beam/streaming-insert/.project
+/beam/streaming-insert/.factorypath
+/beam/streaming-insert/.classpath
 /terraform/.terraform
 .vscode
 *tfstate*
 *.tar.gz
-beam/first-dataflow/.settings/org.eclipse.jdt.core.prefs
-beam/first-dataflow/bin/.project

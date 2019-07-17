@@ -1,13 +1,12 @@
-FROM golang:1.9.4
-WORKDIR /go/src/github.com/Cidan/dataflow-demo
-ADD . /go/src/github.com/Cidan/dataflow-demo
+FROM golang:1.12.7
+WORKDIR /app
+COPY . .
 RUN apt-get update && \
 apt-get install -y git ca-certificates && \
-mkdir -p /go/bin && \
-curl https://glide.sh/get | sh && \
-glide up && \
-go build ./...
+ls -alh && \
+go build ./... && \
+go install ./...
 FROM debian:stretch
-COPY --from=0 /go/src/github.com/Cidan/dataflow-demo/generate .
+COPY --from=0 /go/bin/generate .
 RUN apt update && apt install -y ca-certificates
 CMD [ "./generate" ]

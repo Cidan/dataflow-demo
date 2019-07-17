@@ -8,13 +8,6 @@ resource "google_bigtable_instance" "df-demo" {
     num_nodes    = 3
     storage_type = "HDD"
   }
-
-  cluster {
-    cluster_id   = "df-demo-eu-west"
-    zone         = "europe-west1-b"
-    num_nodes    = 3
-    storage_type = "HDD"
-  }
 }
 
 resource "google_bigtable_table" "df-demo" {

@@ -1,9 +1,0 @@
-package: github.com/Cidan/dataflow-demo
-import:
-- package: cloud.google.com/go
-  version: ~0.18.0
-  subpackages:
-  - pubsub
-- package: github.com/Shopify/sarama
-- package: github.com/rs/zerolog
-  version: ~1.4.0

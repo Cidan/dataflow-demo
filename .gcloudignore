@@ -1,0 +1,5 @@
+/beam/**
+/k8s/**
+/scripts/**
+/terraform/**
+/.git/**

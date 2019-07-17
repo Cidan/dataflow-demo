@@ -208,12 +208,12 @@ public class Demo {
     String subscription = "projects/"
     + projectName
     + "/subscriptions/"
-    + "pd-demo";
+    + "dataflow-stream-demo";
 
     String batchSubscription = "projects/"
     + projectName
     + "/subscriptions/"
-    + "iot-batch";
+    + "dataflow-stream-gcs-demo";
     Pipeline p = Pipeline.create(options);
 
     // Collect batched data events from Pub/Sub
