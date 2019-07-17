@@ -5,7 +5,7 @@ resource "google_container_cluster" "df-demo" {
   enable_legacy_abac = true
 
   subnetwork = "${google_compute_subnetwork.df-demo.name}"
-  
+
   // Main pool for the cluster
   node_pool {
     name       = "default"
@@ -14,7 +14,7 @@ resource "google_container_cluster" "df-demo" {
     node_config {
       oauth_scopes = [
         "https://www.googleapis.com/auth/pubsub",
-        "https://www.googleapis.com/auth/storage.read_only"
+        "https://www.googleapis.com/auth/devstorage.read_only"
       ]
 
       disk_size_gb = 30
