@@ -13,6 +13,7 @@ import com.google.protobuf.ByteString;
 
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.extensions.gcp.util.gcsfs.GcsPath;
 import org.apache.beam.sdk.io.FileIO;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
@@ -26,6 +27,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Flatten;
+import org.apache.beam.sdk.transforms.InferableFunction;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -33,7 +35,6 @@ import org.apache.beam.sdk.transforms.SerializableFunction;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
-import org.apache.beam.sdk.util.gcsfs.GcsPath;
 import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionList;
@@ -220,12 +221,15 @@ public class Demo {
     PCollection<String> uris = p.apply(PubsubIO.readMessagesWithAttributes()
     .fromSubscription(batchSubscription))
     .apply(MapElements
-            .into(TypeDescriptors.strings())
-            .via((PubsubMessage msg) -> {
+            .via(new InferableFunction<PubsubMessage, String>() {
+              private static final long serialVersionUID = 1L;
+
+              public String apply(PubsubMessage msg) throws Exception {
               return GcsPath.fromComponents(
                 msg.getAttribute("bucketId"),
                 msg.getAttribute("objectId")
               ).toString();
+            }
             }));
 
     // Get our files from the batched events
@@ -268,7 +272,7 @@ public class Demo {
     // Write full, raw output, to a BigQuery table
     decoded.get(rawData)
     .apply("Raw to BigQuery", BigQueryIO.writeTableRows()
-      .to(projectName + ":dataflow-demo.rawData")
+      .to(projectName + ":dataflow_demo.rawData")
       .withSchema(Helpers.generateSchema(Helpers.rawSchema))
       .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
       .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
@@ -311,7 +315,7 @@ public class Demo {
       }))
     // Write our one minute rollups for each event to BigQuery
     .apply("Rollup to BigQuery", BigQueryIO.writeTableRows()
-    .to(projectName + ":dataflow-demo.rollupData")
+    .to(projectName + ":dataflow_demo.rollupData")
     .withSchema(Helpers.generateSchema(Helpers.rollupSchema))
     .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
     .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)

@@ -26,7 +26,7 @@ function create-terraform {
 }
 
 function create-bigtable-cf {
-	cbt -instance df-demo createfamily df-demo events
+	cbt -project $PROJECT -instance df-demo createfamily df-demo events
 }
 
 function create-dataflow-template {
@@ -34,9 +34,9 @@ function create-dataflow-template {
 	mvn compile exec:java \
 	-Dexec.mainClass=com.google.Demo \
 	-Dexec.args="--runner=DataflowRunner \
-	             --project=$PROJECT \
-	             --stagingLocation=gs://$BUCKET/dataflow-staging \
-	             --templateLocation=gs://$BUCKET/dataflow-template/streaming-insert"
+  --project=$PROJECT \
+  --stagingLocation=gs://$BUCKET/dataflow-staging \
+  --templateLocation=gs://$BUCKET/dataflow-template/streaming-insert"
 	cd ../../
 }
 
