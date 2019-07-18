@@ -19,10 +19,16 @@ function create-container {
 }
 
 function create-terraform {
-	cd terraform
+	cd terraform/infrastructure
 	terraform init
 	terraform apply -auto-approve -var "project=$PROJECT" -var "bucket=$BUCKET"
-	cd ..
+	cd ../..
+}
+
+function start-dataflow {
+	cd terraform/dataflow
+	terraform apply -auto-approve -var "project=$PROJECT" -var "bucket=$BUCKET"
+	cd ../..
 }
 
 function create-bigtable-cf {
@@ -49,4 +55,5 @@ create-container
 create-terraform
 create-bigtable-cf
 create-dataflow-template
+start-dataflow
 start-generator
