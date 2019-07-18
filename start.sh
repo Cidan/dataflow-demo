@@ -29,6 +29,17 @@ function create-bigtable-cf {
 	cbt -instance df-demo createfamily df-demo events
 }
 
+function create-dataflow-template {
+	cd beam/streaming-insert
+	mvn compile exec:java \
+	-Dexec.mainClass=com.google.Demo \
+	-Dexec.args="--runner=DataflowRunner \
+	             --project=$PROJECT \
+	             --stagingLocation=gs://$BUCKET/dataflow-staging \
+	             --templateLocation=gs://$BUCKET/dataflow-template/streaming-insert"
+	cd ../../
+}
+
 function start-generator {
 	gcloud container clusters get-credentials df-demo --zone us-central1-a --project $PROJECT
 	sed "s/{{PROJECT}}/$PROJECT/" k8s/deployment.yml | kubectl apply -f -
@@ -37,4 +48,5 @@ function start-generator {
 create-container
 create-terraform
 create-bigtable-cf
+create-dataflow-template
 start-generator

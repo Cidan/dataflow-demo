@@ -268,7 +268,7 @@ public class Demo {
     // Write full, raw output, to a BigQuery table
     decoded.get(rawData)
     .apply("Raw to BigQuery", BigQueryIO.writeTableRows()
-      .to(projectName + ":testing.rawData")
+      .to(projectName + ":dataflow-demo.rawData")
       .withSchema(Helpers.generateSchema(Helpers.rawSchema))
       .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
       .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
@@ -311,7 +311,7 @@ public class Demo {
       }))
     // Write our one minute rollups for each event to BigQuery
     .apply("Rollup to BigQuery", BigQueryIO.writeTableRows()
-    .to(projectName + ":testing.rollupData")
+    .to(projectName + ":dataflow-demo.rollupData")
     .withSchema(Helpers.generateSchema(Helpers.rollupSchema))
     .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
     .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
