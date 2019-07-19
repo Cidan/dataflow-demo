@@ -51,14 +51,22 @@ public class Demo {
   private static final ObjectMapper objectMapper = new ObjectMapper();
   // We define three tags here for our decoded output (below). Each tag is a "split" in the stream,
   // which allows us to make runtime decisions about how to process data.
-  static final TupleTag<TableRow> badData = new TupleTag<TableRow>(){};
-  static final TupleTag<TableRow> rawData = new TupleTag<TableRow>(){};
-  static final TupleTag<KV<String,TableRow>> windowData = new TupleTag<KV<String,TableRow>>(){};
+  static final TupleTag<TableRow> badData = new TupleTag<TableRow>(){
+    private static final long serialVersionUID = -767009006608923756L;
+  };
+  static final TupleTag<TableRow> rawData = new TupleTag<TableRow>(){
+    private static final long serialVersionUID = 2136448626752693877L;
+  };
+  static final TupleTag<KV<String,TableRow>> windowData = new TupleTag<KV<String,TableRow>>(){
+    private static final long serialVersionUID = -3415847992297126358L;
+  };
   static String projectName;
 
   // A DoFn that creates a BigTable mutation out of our data stream.
   static class CreateMutation extends DoFn<TableRow, KV<ByteString,Iterable<Mutation>>> {
-     // Our main decoder function.
+     private static final long serialVersionUID = 3984404009822746889L;
+
+    // Our main decoder function.
      @ProcessElement
      public void processElement(ProcessContext c) {
       
@@ -100,6 +108,7 @@ public class Demo {
   // This DoFn, DecodeMessage, will decode our incoming JSON data and split it into three
   // outputs as defined above.
   static class DecodeMessage extends DoFn<String, KV<String,TableRow>> {
+    private static final long serialVersionUID = -8532541222456695376L;
 
     // This function will create a TableRow (BigQuery row) out of String data
     // for later debugging.
@@ -148,6 +157,7 @@ public class Demo {
   // A simple combine function for our Rollup output that counts the number of events in
   // a window. This is used/instatiated a bit later in the file.
   public static class SumEvents implements SerializableFunction<Iterable<TableRow>, TableRow> {
+    private static final long serialVersionUID = -168745339609243346L;
     @Override
     public TableRow apply(Iterable<TableRow> input) {
       return new TableRow().set("total", Iterables.size(input));
@@ -159,6 +169,7 @@ public class Demo {
   // BigQuery table. This PTransform is applied to failed inserts and will serialize a TableRow
   // back into JSON so we can analyze it later.
   public static class DeadLetter extends PTransform<PCollection<TableRow>, WriteResult> {
+    private static final long serialVersionUID = -7677511787000404230L;
     public String label;
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -173,6 +184,7 @@ public class Demo {
       // so we can analyze the failure at a later date.
       return rows.apply("Convert to Dead Letter", ParDo
       .of(new DoFn<TableRow, TableRow>(){
+        private static final long serialVersionUID = 4413434677312103534L;
         @ProcessElement
         public void processElement(ProcessContext c) {
           TableRow r = new TableRow();
@@ -304,6 +316,7 @@ public class Demo {
     // Get the event name for this rollup, and apply it to the TableRow
     .apply("Apply Event Name", ParDo
       .of(new DoFn<KV<String, TableRow>, TableRow>(){
+        private static final long serialVersionUID = -690923091551584848L;
         @ProcessElement
         public void processElement(ProcessContext c, BoundedWindow window) {
           TableRow r = c.element().getValue();
