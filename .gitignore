@@ -7,7 +7,7 @@ vendor/
 /beam/streaming-insert/.project
 /beam/streaming-insert/.factorypath
 /beam/streaming-insert/.classpath
-/terraform/.terraform
+/terraform/**/.terraform
 .vscode
 *tfstate*
 *.tar.gz
