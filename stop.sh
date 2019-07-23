@@ -9,5 +9,5 @@ fi
 
 cd terraform/infrastructure
 terraform destroy -var "project=$PROJECT" -var "bucket=$BUCKET"
-#cd ../dataflow
-#terraform destroy -var "project=$PROJECT" -var "bucket=$BUCKET"
+cd ../dataflow
+terraform destroy -var "project=$PROJECT" -var "bucket=$BUCKET"
