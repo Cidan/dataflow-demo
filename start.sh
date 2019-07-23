@@ -27,6 +27,7 @@ function create-terraform {
 
 function start-dataflow {
 	cd terraform/dataflow
+	terraform init
 	terraform apply -auto-approve -var "project=$PROJECT" -var "bucket=$BUCKET"
 	cd ../..
 }
