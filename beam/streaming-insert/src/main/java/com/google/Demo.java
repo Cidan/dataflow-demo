@@ -200,7 +200,7 @@ public class Demo {
       }))
       // Save our dead letter items into BigQuery
       .apply("Dead Letter (" + label + ")", BigQueryIO.writeTableRows()
-        .to(projectName + ":testing.badData")
+        .to(projectName + ":dataflow_demo.badData")
         .withSchema(Helpers.generateSchema(Helpers.badSchema))
         .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
         .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
