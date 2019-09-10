@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"google.golang.org/api/compute/v1"
+	"golang.org/x/oauth2/google"
 	"cloud.google.com/go/pubsub"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -67,9 +69,18 @@ func init() {
 	}()
 }
 
+func getProject() string {
+	ctx := context.Background()
+	credentials, err := google.FindDefaultCredentials(ctx,compute.ComputeScope)
+	if err != nil {
+			panic(err)
+	}
+	return credentials.ProjectID
+}
+
 func main() {
 	log.Info().Msg("Connecting to Pub/Sub")
-	client, err := pubsub.NewClient(context.Background(), "jinked-home")
+	client, err := pubsub.NewClient(context.Background(), getProject())
 	if err != nil {
 		log.Panic().Err(err).Msg("Error connecting to Pub/Sub")
 	}
