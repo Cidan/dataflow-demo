@@ -236,7 +236,9 @@ public class Demo {
     PCollection<String> merged;
 
     if (options.batchLocation() != null) {
-      // TODO: batch load
+      // Batch load/backfill records instead of streaming from
+      // the given batchLocation, which can be an S3 bucket, a GCS
+      // bucket, or any other supported filesystem.
       merged = p.apply(TextIO.read()
         .from(options.batchLocation())
       );
