@@ -23,6 +23,7 @@ import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
 import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
+import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -208,13 +209,18 @@ public class Demo {
     }
   }
 
+  public interface MyOptions extends DataflowPipelineOptions {
+    String batchLocation();
+    void setBatchLocation(String input);
+  }
+
   // Our main exeuction point for our pipeline. This is just like main
   // in any other Java program.
   public static void main(String[] args) {
-    DataflowPipelineOptions options = PipelineOptionsFactory
+    MyOptions options = PipelineOptionsFactory
       .fromArgs(args)
       .withValidation()
-      .as(DataflowPipelineOptions.class);
+      .as(MyOptions.class);
     projectName = options.getProject();
 
     String subscription = "projects/"
@@ -227,45 +233,50 @@ public class Demo {
     + "/subscriptions/"
     + "dataflow-stream-gcs-demo";
     Pipeline p = Pipeline.create(options);
+    PCollection<String> merged;
 
-    // Collect batched data events from Pub/Sub
-    PCollection<String> uris = p.apply(PubsubIO.readMessagesWithAttributes()
-    .fromSubscription(batchSubscription))
-    .apply(MapElements
-            .via(new InferableFunction<PubsubMessage, String>() {
-              private static final long serialVersionUID = 1L;
+    if (options.batchLocation() != null) {
+      // TODO: batch load
+      merged = p.apply(TextIO.read()
+        .from(options.batchLocation())
+      );
 
-              public String apply(PubsubMessage msg) throws Exception {
-              return GcsPath.fromComponents(
-                msg.getAttribute("bucketId"),
-                msg.getAttribute("objectId")
-              ).toString();
-            }
-            }));
+    } else {
+      // Collect batched data events from Pub/Sub
+      PCollection<String> uris = p.apply(PubsubIO.readMessagesWithAttributes()
+      .fromSubscription(batchSubscription))
+      .apply(MapElements
+              .via(new InferableFunction<PubsubMessage, String>() {
+                private static final long serialVersionUID = 1L;
 
-    // Get our files from the batched events
-    PCollection<String> batchedData = uris.apply(FileIO.matchAll()
-    .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
-    .apply(FileIO.readMatches())
-    .apply(TextIO.readFiles());
+                public String apply(PubsubMessage msg) throws Exception {
+                return GcsPath.fromComponents(
+                  msg.getAttribute("bucketId"),
+                  msg.getAttribute("objectId")
+                ).toString();
+              }
+              }));
 
-    // Read live data from Pub/Sub
-    PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
-    .fromSubscription(subscription));
-    
-    // Merge our two streams together
-    PCollection<String> merged = PCollectionList
-      .of(batchedData)
-      .and(pubsubStream)
-    .apply("Flatten Streams",
-      Flatten.<String>pCollections());
+      // Get our files from the batched events
+      PCollection<String> batchedData = uris.apply(FileIO.matchAll()
+      .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
+      .apply(FileIO.readMatches())
+      .apply(TextIO.readFiles());
 
-		// Decoded our incoming data
-		PCollectionTuple decoded = merged
-    
+      // Read live data from Pub/Sub
+      PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
+      .fromSubscription(subscription));
+            
+      // Merge our two streams together
+      merged = PCollectionList
+        .of(batchedData)
+        .and(pubsubStream)
+      .apply("Flatten Streams",
+        Flatten.<String>pCollections());
+    }
     // Decode the messages into TableRow's (a type of Map), split by tag
     // based on how our decode function emitted the TableRow
-    .apply("Decode JSON into Rows", ParDo
+    PCollectionTuple decoded = merged.apply("Decode JSON into Rows", ParDo
       .of(new DecodeMessage())
         .withOutputTags(windowData, TupleTagList
           .of(badData)
