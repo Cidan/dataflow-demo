@@ -21,14 +21,14 @@ function create-container {
 function create-terraform {
 	cd terraform/infrastructure
 	terraform init
-	terraform apply -auto-approve -var "project=$PROJECT" -var "bucket=$BUCKET"
+	terraform apply -auto-approve -var "project=$PROJECT" -var "bucket-prefix=$BUCKET"
 	cd ../..
 }
 
 function start-dataflow {
 	cd terraform/dataflow
 	terraform init
-	terraform apply -auto-approve -var "project=$PROJECT" -var "bucket=$BUCKET"
+	terraform apply -auto-approve -var "project=$PROJECT" -var "bucket-prefix=$BUCKET"
 	cd ../..
 }
 
@@ -42,8 +42,8 @@ function create-dataflow-template {
 	-Dexec.mainClass=com.google.Demo \
 	-Dexec.args="--runner=DataflowRunner \
   --project=$PROJECT \
-  --stagingLocation=gs://$BUCKET/dataflow-staging \
-  --templateLocation=gs://$BUCKET/dataflow-template/streaming-insert"
+  --stagingLocation=gs://$BUCKET-staging/dataflow-staging \
+  --templateLocation=gs://$BUCKET-staging/dataflow-template/streaming-insert"
 	cd ../../
 }
 
@@ -52,7 +52,7 @@ function start-generator {
 	sed "s/{{PROJECT}}/$PROJECT/" k8s/deployment.yml | kubectl apply -f -
 }
 
-create-container
+#create-container
 create-terraform
 create-bigtable-cf
 create-dataflow-template

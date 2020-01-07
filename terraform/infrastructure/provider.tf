@@ -1,5 +1,5 @@
 variable "project" {}
-variable "bucket" {}
+variable "bucket-prefix" {}
 // Configure the Google Cloud provider
 provider "google" {
 	version     = "2.11"

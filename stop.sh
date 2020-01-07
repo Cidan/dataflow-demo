@@ -8,6 +8,6 @@ if [[ $PROJECT == "" || $BUCKET == "" ]]; then
 fi
 
 cd terraform/infrastructure
-terraform destroy -var "project=$PROJECT" -var "bucket=$BUCKET"
+terraform destroy -var "project=$PROJECT" -var "bucket-prefix=$BUCKET"
 cd ../dataflow
-terraform destroy -var "project=$PROJECT" -var "bucket=$BUCKET"
+terraform destroy -var "project=$PROJECT" -var "bucket-prefix=$BUCKET"

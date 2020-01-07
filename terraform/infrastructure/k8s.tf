@@ -1,9 +1,9 @@
 // Create a k8s cluster
 resource "google_container_cluster" "df-demo" {
-  project = "${var.project}"
-  name               = "df-demo"
-  location               = "us-central1-a"
-  enable_legacy_abac = true
+  project             = "${var.project}"
+  name                = "df-demo"
+  location            = "us-central1-a"
+  enable_legacy_abac  = true
 
   subnetwork = "${google_compute_subnetwork.df-demo.name}"
 
