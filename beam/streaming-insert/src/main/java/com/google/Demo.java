@@ -223,6 +223,8 @@ public class Demo {
       .fromArgs(args)
       .withValidation()
       .as(MyOptions.class);
+    
+    options.setStreaming(true);
     projectName = options.getProject();
 
     String subscription = "projects/"
@@ -237,47 +239,36 @@ public class Demo {
     Pipeline p = Pipeline.create(options);
     PCollection<String> merged;
 
-    if (options.getBatchLocation() != null) {
-      // Batch load/backfill records instead of streaming from
-      // the given batchLocation, which can be an S3 bucket, a GCS
-      // bucket, or any other supported filesystem.
-      merged = p.apply(TextIO.read()
-        .from(options.getBatchLocation())
-      );
+    // Collect batched data events from Pub/Sub
+    PCollection<String> uris = p.apply(PubsubIO.readMessagesWithAttributes()
+    .fromSubscription(batchSubscription))
+    .apply(MapElements
+            .via(new InferableFunction<PubsubMessage, String>() {
+              private static final long serialVersionUID = 1L;
+              public String apply(PubsubMessage msg) throws Exception {
+              return GcsPath.fromComponents(
+                msg.getAttribute("bucketId"),
+                msg.getAttribute("objectId")
+              ).toString();
+            }
+            }));
 
-    } else {
-      // Collect batched data events from Pub/Sub
-      PCollection<String> uris = p.apply(PubsubIO.readMessagesWithAttributes()
-      .fromSubscription(batchSubscription))
-      .apply(MapElements
-              .via(new InferableFunction<PubsubMessage, String>() {
-                private static final long serialVersionUID = 1L;
+    // Get our files from the batched events
+    PCollection<String> batchedData = uris.apply(FileIO.matchAll()
+    .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
+    .apply(FileIO.readMatches())
+    .apply(TextIO.readFiles());
 
-                public String apply(PubsubMessage msg) throws Exception {
-                return GcsPath.fromComponents(
-                  msg.getAttribute("bucketId"),
-                  msg.getAttribute("objectId")
-                ).toString();
-              }
-              }));
-
-      // Get our files from the batched events
-      PCollection<String> batchedData = uris.apply(FileIO.matchAll()
-      .withEmptyMatchTreatment(EmptyMatchTreatment.DISALLOW))
-      .apply(FileIO.readMatches())
-      .apply(TextIO.readFiles());
-
-      // Read live data from Pub/Sub
-      PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
-      .fromSubscription(subscription));
+    // Read live data from Pub/Sub
+    PCollection<String> pubsubStream = p.apply("Read from Pub/Sub", PubsubIO.readStrings()
+    .fromSubscription(subscription));
             
-      // Merge our two streams together
-      merged = PCollectionList
-        .of(batchedData)
-        .and(pubsubStream)
-      .apply("Flatten Streams",
-        Flatten.<String>pCollections());
-    }
+    // Merge our two streams together
+    merged = PCollectionList
+      .of(batchedData)
+      .and(pubsubStream)
+    .apply("Flatten Streams",
+      Flatten.<String>pCollections());
     // Decode the messages into TableRow's (a type of Map), split by tag
     // based on how our decode function emitted the TableRow
     PCollectionTuple decoded = merged.apply("Decode JSON into Rows", ParDo
