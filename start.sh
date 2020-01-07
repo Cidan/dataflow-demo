@@ -52,7 +52,7 @@ function start-generator {
 	sed "s/{{PROJECT}}/$PROJECT/" k8s/deployment.yml | kubectl apply -f -
 }
 
-#create-container
+create-container
 create-terraform
 create-bigtable-cf
 create-dataflow-template
