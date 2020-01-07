@@ -1,4 +1,5 @@
 resource "google_storage_bucket" "staging-bucket" {
+  project = "${var.project}"
   name = "${var.bucket}"
   location = "US"
   force_destroy = true
@@ -12,9 +13,12 @@ resource "google_storage_notification" "notification" {
     depends_on        = ["google_pubsub_topic_iam_binding.binding"]
 }
 
-data "google_storage_project_service_account" "gcs_account" {}
+data "google_storage_project_service_account" "gcs_account" {
+  project = "${var.project}"
+}
 
 resource "google_pubsub_topic_iam_binding" "binding" {
+    project     = "${var.project}"
     topic       = "${google_pubsub_topic.dataflow-stream-gcs-demo.name}"
     role        = "roles/pubsub.publisher"
     members     = ["serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"]

@@ -8,11 +8,10 @@ import (
 	"os/signal"
 	"time"
 
-	"google.golang.org/api/compute/v1"
-	"golang.org/x/oauth2/google"
 	"cloud.google.com/go/pubsub"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/compute/v1"
 )
 
 // FakeUser struct for pre-loading data
@@ -53,27 +52,18 @@ var eventNames = [...]string{
 	"dance",
 }
 
-var recordTime time.Time
+var recordTime = time.Now()
 var faker int64
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	go func() {
-		recordTime = time.Now()
-		for {
-			faker++
-			recordTime = recordTime.Add(time.Hour)
-			time.Sleep(time.Second * 1)
-		}
-	}()
 }
 
 func getProject() string {
 	ctx := context.Background()
-	credentials, err := google.FindDefaultCredentials(ctx,compute.ComputeScope)
+	credentials, err := google.FindDefaultCredentials(ctx, compute.ComputeScope)
 	if err != nil {
-			panic(err)
+		panic(err)
 	}
 	return credentials.ProjectID
 }
@@ -86,14 +76,14 @@ func main() {
 	}
 
 	// Create our topic
-	topic := client.Topic("pd-demo")
+	topic := client.Topic("dataflow-stream-demo")
 	exists, err := topic.Exists(context.Background())
 	if err != nil {
 		log.Panic().Err(err).Msg("Error checking for Pub/Sub topic")
 	}
 
 	if !exists {
-		topic, err = client.CreateTopic(context.Background(), "pd-demo")
+		topic, err = client.CreateTopic(context.Background(), "dataflow-stream-demo")
 		if err != nil {
 			log.Panic().Err(err).Msg("Error creating topic")
 		}
@@ -135,7 +125,7 @@ func startWorker(topic *pubsub.Topic) {
 				Name:      eventNames[rand.Intn(len(eventNames)-1)],
 				UUID:      randString(24),
 				UserUUID:  randString(24),
-				Timestamp: recordTime.Unix(),
+				Timestamp: time.Now().Unix(),
 			}
 			data, err = json.Marshal(ev)
 			if err != nil {

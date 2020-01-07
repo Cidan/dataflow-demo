@@ -22,9 +22,10 @@ import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.gcp.bigquery.InsertRetryPolicy;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.Method;
 import org.apache.beam.sdk.io.gcp.bigtable.BigtableIO;
-import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.Flatten;
@@ -202,6 +203,7 @@ public class Demo {
       // Save our dead letter items into BigQuery
       .apply("Dead Letter (" + label + ")", BigQueryIO.writeTableRows()
         .to(projectName + ":dataflow_demo.badData")
+        .withMethod(Method.STREAMING_INSERTS)
         .withSchema(Helpers.generateSchema(Helpers.badSchema))
         .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
         .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
@@ -210,8 +212,8 @@ public class Demo {
   }
 
   public interface MyOptions extends DataflowPipelineOptions {
-    String batchLocation();
-    void setBatchLocation(String input);
+    ValueProvider<String> getBatchLocation();
+    void setBatchLocation(ValueProvider<String> input);
   }
 
   // Our main exeuction point for our pipeline. This is just like main
@@ -235,12 +237,12 @@ public class Demo {
     Pipeline p = Pipeline.create(options);
     PCollection<String> merged;
 
-    if (options.batchLocation() != null) {
+    if (options.getBatchLocation() != null) {
       // Batch load/backfill records instead of streaming from
       // the given batchLocation, which can be an S3 bucket, a GCS
       // bucket, or any other supported filesystem.
       merged = p.apply(TextIO.read()
-        .from(options.batchLocation())
+        .from(options.getBatchLocation())
       );
 
     } else {
@@ -297,6 +299,7 @@ public class Demo {
     decoded.get(rawData)
     .apply("Raw to BigQuery", BigQueryIO.writeTableRows()
       .to(projectName + ":dataflow_demo.rawData")
+      .withMethod(Method.STREAMING_INSERTS)
       .withSchema(Helpers.generateSchema(Helpers.rawSchema))
       .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
       .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
@@ -341,6 +344,7 @@ public class Demo {
     // Write our one minute rollups for each event to BigQuery
     .apply("Rollup to BigQuery", BigQueryIO.writeTableRows()
     .to(projectName + ":dataflow_demo.rollupData")
+    .withMethod(Method.STREAMING_INSERTS)
     .withSchema(Helpers.generateSchema(Helpers.rollupSchema))
     .withCreateDisposition(BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED)
     .withWriteDisposition(BigQueryIO.Write.WriteDisposition.WRITE_APPEND)
