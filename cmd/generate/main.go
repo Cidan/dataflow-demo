@@ -1,5 +1,6 @@
 package main
 
+// TODO: generate bulk newline json log events, upload to GCS
 import (
 	"context"
 	"encoding/json"
@@ -10,9 +11,9 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/rs/zerolog/log"
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
-	"github.com/satori/go.uuid"
 )
 
 // FakeUser struct for pre-loading data
