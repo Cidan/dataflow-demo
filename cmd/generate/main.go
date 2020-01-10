@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
+	"github.com/satori/go.uuid"
 )
 
 // FakeUser struct for pre-loading data
@@ -52,11 +53,16 @@ var eventNames = [...]string{
 	"dance",
 }
 
-var recordTime = time.Now()
+var uuids []string
 var faker int64
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+
+	// Generate a fixed set of UUID's
+	for i := 0; i < 1000; i++ {
+		uuids = append(uuids, uuid.NewV4().String())
+	}
 }
 
 func getProject() string {
@@ -123,8 +129,8 @@ func startWorker(topic *pubsub.Topic) {
 		} else {
 			ev := &FakeEvent{
 				Name:      eventNames[rand.Intn(len(eventNames)-1)],
-				UUID:      randString(24),
-				UserUUID:  randString(24),
+				UUID:      uuid.NewV4().String(),
+				UserUUID:  uuids[rand.Intn(len(uuids)-1)],
 				Timestamp: time.Now().Unix(),
 			}
 			data, err = json.Marshal(ev)
